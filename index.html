@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Falppy Bird</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app">
+      <header class="hud">
+        <div class="brand">
+          <span class="dot" aria-hidden="true"></span>
+          <span>Falppy Bird</span>
+        </div>
+        <div class="score" aria-live="polite">
+          <span class="scoreValue" id="score">0</span>
+        </div>
+      </header>
+
+      <section class="stage">
+        <canvas id="game" aria-label="Falppy Bird game canvas"></canvas>
+        <div class="overlay" id="overlay">
+          <div class="overlayInner">
+            <h1>Falppy Bird</h1>
+            <p class="hint">Click / Tap / Space to flap</p>
+            <p class="hint secondary" id="readyHint">Press Space to start</p>
+            <div class="divider" aria-hidden="true"></div>
+            <button class="btn" id="restartBtn" type="button">Start</button>
+          </div>
+        </div>
+      </section>
+
+      <footer class="footer">
+        <span>Made with Canvas. No assets required.</span>
+      </footer>
+    </main>
+
+    <script src="./game.js"></script>
+  </body>
+</html>
+
