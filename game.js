@@ -11,17 +11,63 @@
 
   // ---- Game tuning (feel free to tweak) ----
   const cfg = {
-    gravity: 1500, // px/s^2 (lower = slower fall)
+    gravity: 1200, // px/s^2 (lower = slower fall)
     flapVelocity: -560, // px/s
     pipeSpeed: 240, // px/s
     pipeSpawnEvery: 1.45, // seconds
     pipeWidth: 70, // px
-    pipeGap: 190, // px (space between top/bottom pipes)
+    pipeGap: 220, // px (space between top/bottom pipes)
     birdX: 190, // px (fixed horizontal position)
     birdRadius: 18, // px
     groundHeight: 86, // px
     ceilingPad: 10, // px
   };
+
+  // Visual themes: background + ground + pipe colors.
+  const themes = [
+    {
+      bgTop: "rgba(87,211,255,0.20)",
+      bgMid: "rgba(11,18,32,0.25)",
+      bgBottom: "rgba(7,11,22,0.45)",
+      starA: "rgba(87,211,255,0.35)",
+      starB: "rgba(233,241,255,0.20)",
+      ground: "#14234a",
+      stripe: "rgba(87,211,255,0.18)",
+      ceilingLine: "rgba(87,211,255,0.18)",
+      pipeTop: "#20d05a",
+      pipeBottom: "#1fd85b",
+      pipeInner: "rgba(20,154,61,0.95)",
+      pipeCaps: "rgba(15,26,51,0.55)",
+    },
+    {
+      bgTop: "rgba(255,142,77,0.20)",
+      bgMid: "rgba(35,8,24,0.25)",
+      bgBottom: "rgba(7,11,22,0.48)",
+      starA: "rgba(255,175,110,0.32)",
+      starB: "rgba(233,241,255,0.18)",
+      ground: "#2a1339",
+      stripe: "rgba(255,142,77,0.18)",
+      ceilingLine: "rgba(255,142,77,0.18)",
+      pipeTop: "#ff7a3d",
+      pipeBottom: "#ff6b2e",
+      pipeInner: "rgba(215,77,30,0.95)",
+      pipeCaps: "rgba(15,26,51,0.55)",
+    },
+    {
+      bgTop: "rgba(180,90,255,0.20)",
+      bgMid: "rgba(6,10,24,0.28)",
+      bgBottom: "rgba(7,11,22,0.45)",
+      starA: "rgba(180,90,255,0.35)",
+      starB: "rgba(233,241,255,0.18)",
+      ground: "#0f2e2b",
+      stripe: "rgba(0,255,163,0.18)",
+      ceilingLine: "rgba(0,255,163,0.18)",
+      pipeTop: "#00c78a",
+      pipeBottom: "#00db92",
+      pipeInner: "rgba(0,170,105,0.95)",
+      pipeCaps: "rgba(15,26,51,0.55)",
+    },
+  ];
 
   const state = {
     time: 0,
@@ -29,6 +75,7 @@
     score: 0,
     best: 0,
     state: "ready", // ready | playing | gameover
+    themeIndex: 0,
     bird: { y: 0, v: 0 },
     pipes: [],
     pipeSpawnT: 0,
@@ -88,6 +135,7 @@
     state.time = 0;
     state.lastTs = 0;
     state.score = 0;
+    state.themeIndex = 0;
     state.pipes = [];
     state.pipeSpawnT = 0;
 
@@ -186,6 +234,16 @@
         p.passed = true;
         state.score += 1;
         updateScore();
+        if (state.score % 5 === 0) {
+          state.themeIndex = (state.themeIndex + 1) % themes.length;
+          // Small "theme shift" tone.
+          playTone({
+            freq: 520 + state.themeIndex * 70,
+            dur: 0.05,
+            type: "sine",
+            gain: 0.035,
+          });
+        }
         playTone({ freq: 780, dur: 0.05, type: "square", gain: 0.045 });
       }
     }
@@ -216,11 +274,12 @@
   }
 
   function renderBackground() {
+    const theme = themes[state.themeIndex];
     // Background (gradient-ish)
     const g = ctx.createLinearGradient(0, 0, 0, state.h);
-    g.addColorStop(0, "rgba(87,211,255,0.20)");
-    g.addColorStop(0.45, "rgba(11,18,32,0.25)");
-    g.addColorStop(1, "rgba(7,11,22,0.45)");
+    g.addColorStop(0, theme.bgTop);
+    g.addColorStop(0.45, theme.bgMid);
+    g.addColorStop(1, theme.bgBottom);
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, state.w, state.h);
 
@@ -230,7 +289,7 @@
     for (let i = 0; i < starCount; i++) {
       const x = (i * 37) % state.w;
       const y = (i * 91) % Math.floor(state.h * 0.6);
-      ctx.fillStyle = i % 3 === 0 ? "rgba(87,211,255,0.35)" : "rgba(233,241,255,0.20)";
+      ctx.fillStyle = i % 3 === 0 ? theme.starA : theme.starB;
       ctx.fillRect(x, y, 2, 2);
     }
     ctx.globalAlpha = 1;
@@ -251,28 +310,30 @@
   }
 
   function drawPipeSegment(x, y, w, h, isTop) {
+    const theme = themes[state.themeIndex];
     // Pipe body
-    ctx.fillStyle = isTop ? "#20d05a" : "#1fd85b";
+    ctx.fillStyle = isTop ? theme.pipeTop : theme.pipeBottom;
     ctx.fillRect(x, y, w, h);
 
     // Inner shade
-    ctx.fillStyle = "rgba(20,154,61,0.95)";
+    ctx.fillStyle = theme.pipeInner;
     ctx.fillRect(x + w * 0.18, y + 3, w * 0.22, h - 6);
 
     // Caps
-    ctx.fillStyle = "rgba(15,26,51,0.55)";
+    ctx.fillStyle = theme.pipeCaps;
     ctx.fillRect(x - 2, y - 2, w + 4, 6);
     ctx.fillRect(x - 2, y + h - 4, w + 4, 6);
   }
 
   function renderGround() {
+    const theme = themes[state.themeIndex];
     const groundTop = state.h - cfg.groundHeight;
-    ctx.fillStyle = "#14234a";
+    ctx.fillStyle = theme.ground;
     ctx.fillRect(0, groundTop, state.w, cfg.groundHeight);
 
     // Road stripes
     const t = state.time;
-    ctx.fillStyle = "rgba(87,211,255,0.18)";
+    ctx.fillStyle = theme.stripe;
     const stripeW = 46;
     const offset = ((t * 140) % stripeW) * -1;
     for (let x = offset - stripeW; x < state.w + stripeW; x += stripeW * 2) {
@@ -335,7 +396,7 @@
     renderGround();
 
     // Ceiling line
-    ctx.strokeStyle = "rgba(87,211,255,0.18)";
+    ctx.strokeStyle = themes[state.themeIndex].ceilingLine;
     ctx.beginPath();
     ctx.moveTo(0, cfg.ceilingPad);
     ctx.lineTo(state.w, cfg.ceilingPad);
