@@ -11,7 +11,7 @@
 
   // ---- Game tuning (feel free to tweak) ----
   const cfg = {
-    gravity: 1600, // px/s^2 (lower = slower fall)
+    gravity: 1500, // px/s^2 (lower = slower fall)
     flapVelocity: -560, // px/s
     pipeSpeed: 240, // px/s
     pipeSpawnEvery: 1.45, // seconds
